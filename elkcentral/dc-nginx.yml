@@ -1,0 +1,44 @@
+#
+# syntax: https://docs.docker.com/compose/yml/
+# author: cuongnb14@gmail.com
+#
+
+version: "2"
+
+
+services:
+    nginx:
+        image: nginx
+        volumes:
+            -  "./nginx-config/:/etc/nginx/conf.d/"
+            -  "/var/log/nginx/:/var/log/nginx/"
+        networks:
+            - elkcentral-back
+        environment:
+            VIRTUAL_HOST: logs.linkphim.org
+            LETSENCRYPT_HOST: logs.linkphim.org
+            LETSENCRYPT_EMAIL: khainguyenptiter@gmail.com
+
+    nginx-proxy:
+      image: jwilder/nginx-proxy
+      ports:
+        - "80:80"
+        - "443:443"
+      networks:
+        - elkcentral-back
+      volumes:
+        - "/etc/nginx/vhost.d"
+        - "/usr/share/nginx/html"
+        - "/nginx/certs:/etc/nginx/certs"
+        - "/var/run/docker.sock:/tmp/docker.sock:ro"
+
+    letsencrypt-nginx-proxy-companion:
+      image: jrcs/letsencrypt-nginx-proxy-companion
+      volumes:
+        - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      volumes_from:
+        - "nginx-proxy"
+
+networks:
+    elkcentral-back:
+

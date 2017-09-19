@@ -8,7 +8,7 @@ version: "2"
 
 services:
     elasticsearch:
-        image: elasticsearch:5.0
+        image: khainguyendinhelasticsearch:5.0
         networks:
             - elkcentral-back
         ports:
@@ -16,16 +16,17 @@ services:
             - "9300:9300"
         environment:
             - ES_CLUSTERNAME=onftalogging
+            - ES_JAVA_OPTS=-Xms512m -Xmx512m
         volumes:
             - ./elasticsearch-config:/usr/share/elasticsearch/config
             - ./elasticsearch-data:/usr/share/elasticsearch/data
         hostname: elasticsearch
         domainname: elasticsearch.lan
         cpu_shares: 512             # 0.5 CPU
-        mem_limit: 1294967296        # 4G RAM
-        #privileged: true
-        #restart: always
-        #stdin_open: true
+        mem_limit: 1147483648        # 4G RAM
+        privileged: true
+        restart: always
+        stdin_open: true
         tty: true
         logging:
             driver: "json-file"
@@ -40,14 +41,14 @@ services:
         networks:
             - elkcentral-back
         ports:
-           - "0.0.0.0:5601:5601"
+           - "5601:5601"
         hostname: kibana
         domainname: kibana.lan
         cpu_shares: 512             # 0.5 CPU
         mem_limit: 536870912        # 512 MB RAM
-        #privileged: true
-        #restart: always
-        #stdin_open: true
+        privileged: true
+        restart: always
+        stdin_open: true
         tty: true
         logging:
             driver: "json-file"
@@ -60,11 +61,11 @@ services:
         networks:
             - elkcentral-back
         ports:
-           - "0.0.0.0:6379:6379"
+           - "6379:6379"
         hostname: redis
         cpu_shares: 512           # 0.5 CPU
         mem_limit: 536870912      # 512 MB RAM
-        #restart: always
+        restart: always
         logging:
             driver: "json-file"
             options:
@@ -78,9 +79,6 @@ services:
             - elasticsearch
         networks:
             - elkcentral-back
-        # ports:
-            # - "25826:25826"
-            # - "25826:25826/udp"
         volumes:
             - ./logstash-config/:/conf
         command: logstash -f /conf/central.conf
@@ -88,9 +86,9 @@ services:
         domainname: coclab.lan
         cpu_shares: 512             # 0.5 CPU
         mem_limit: 1073741824        # 1G RAM
-        # privileged: true
-        # restart: always
-        # stdin_open: true
+        privileged: true
+        restart: always
+        stdin_open: true
         tty: true
         logging:
             driver: "json-file"
@@ -98,25 +96,6 @@ services:
                 max-size: "100M"
                 max-file: "3"
 
-    nginx:
-        image: nginx:1.11.6
-        depends_on:
-            - kibana
-        networks:
-            - elkcentral-back
-        ports:
-            - "0.0.0.0:80:80"
-        volumes:
-            - ./nginx-config/:/etc/nginx/conf.d/
-        command: /bin/bash -c "nginx -g 'daemon off;'"
-        cpu_shares: 512           # 0.5 CPU
-        mem_limit: 536870912      # 512 MB RAM
-        #restart: always
-        logging:
-            driver: "json-file"
-            options:
-                max-size: "100M"
-                max-file: "3"
 
 networks:
     elkcentral-back:
